@@ -1,0 +1,22 @@
+version = 1
+requires-python = ">=3.12"
+
+[[package]]
+name = "persistencia-2026-1"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "zipstream-ng" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "zipstream-ng", specifier = ">=1.9.0" }]
+
+[[package]]
+name = "zipstream-ng"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/f2/690a35762cf8366ce6f3b644805de970bd6a897ca44ce74184c7b2bc94e7/zipstream_ng-1.9.0.tar.gz", hash = "sha256:a0d94030822d137efbf80dfdc680603c42f804696f41147bb3db895df667daea", size = 37963 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/62/c2da1c495291a52e561257d017585e08906d288035d025ccf636f6b9a266/zipstream_ng-1.9.0-py3-none-any.whl", hash = "sha256:31dc2cf617abdbf28d44f2e08c0d14c8eee2ea0ec26507a7e4d5d5f97c564b7a", size = 24852 },
+]
