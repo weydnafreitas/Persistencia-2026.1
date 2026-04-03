@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, status, Query
 from fastapi.responses import StreamingResponse
 from deltalake import DeltaTable
 from zipstream import ZipStream
-import io
 
 from app.models.medico import Medico as MedicoModel
 from app.schemas.medico_schema import Medico, MedicoCreate
@@ -10,14 +9,6 @@ from app.repositories.hospital_repository import HospitalRepository
 from app.routers.hasher import calcular_hash
 
 router = APIRouter(prefix="/medicos", tags=["Médicos"])
-
-@router.get("/hash/{algoritmo}")
-def rota_hash(algoritmo: str, valor: str):
-    try:
-        resultado = calcular_hash(algoritmo, valor)
-        return {"algoritmo": algoritmo, "hash": resultado}
-    except KeyError:
-        raise HTTPException(status_code=400, detail="Algoritmo não suportado.")
 
 # Instanciando o repositório genérico para a entidade Medico
 # O caminho "data/medicos" é onde a tabela Delta será salva em disco
@@ -36,11 +27,6 @@ def listar_medicos(
     tamanho: int = Query(10, ge=1, le=100)
 ):
     return repo.listar(pagina=pagina, tamanho=tamanho)
-
-#Contagem (GET /count) 
-@router.get("/count")
-def contar_medicos():
-    return {"total": repo.count()}
 
 #Busca, Atualização e Deleção
 @router.get("/{id}", response_model=Medico)
@@ -62,6 +48,11 @@ def atualizar_medico(id: int, dados: MedicoCreate):
 def deletar_medico(id: int):
     if not repo.delete(id):
         raise HTTPException(status_code=404, detail="Médico não encontrado")
+
+#Contagem (GET /count) 
+@router.get("/count")
+def contar_medicos():
+    return {"total": repo.count()}
 
 #Exportação CSV via Streaming
 @router.get("/exportar/csv")
@@ -112,3 +103,12 @@ def exportar_medicos_zip():
         media_type="application/zip",
         headers={"Content-Disposition": "attachment; filename=exportacao_medicos.zip"}
     )
+
+#Hash
+@router.get("/hash/{algoritmo}")
+def rota_hash(algoritmo: str, valor: str):
+    try:
+        resultado = calcular_hash(algoritmo, valor)
+        return {"algoritmo": algoritmo, "hash": resultado}
+    except KeyError:
+        raise HTTPException(status_code=400, detail="Algoritmo não suportado.")
