@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr, Field
 #POST - envio de dados para criar médico
 class MedicoCreate(BaseModel):
     nome: str
-    crm: str = Field(..., min_lenght=1)
+    crm: str = Field(..., min_length=1)
     especialidade: str
     email: EmailStr | None = None
     telefone: str 
@@ -17,5 +17,5 @@ class MedicoCreate(BaseModel):
 class Medico(MedicoCreate):
     id: int 
 
-    class COnfig:
+    class Config:
         from_attributes = True
