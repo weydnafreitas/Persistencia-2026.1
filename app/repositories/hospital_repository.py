@@ -4,6 +4,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from deltalake import DeltaTable, write_deltalake
 from pydantic import BaseModel
+import pyarrow.dataset as ds
 
 class HospitalRepository[T: BaseModel]:
     def __init__(self, model: type[T], caminho: str) -> None:
@@ -93,7 +94,14 @@ class HospitalRepository[T: BaseModel]:
         
         tabela.update(
             predicate=f"id = {id}",
-            updates={k: f"'{v}'" if isinstance(v, str) else str(v) for k, v in atualizados.items()},
+            updates={
+                k: f"'{v}'" if isinstance(v, str) 
+                else "null" if v is None 
+                else "true" if isinstance(v, bool) and v 
+                else "false" if isinstance(v, bool) and not v 
+                else str(v) 
+                for k, v in atualizados.items()
+            },
         )
 
         return self.get(id)
@@ -137,3 +145,65 @@ class HospitalRepository[T: BaseModel]:
             retention_hours=horas_retencao,
             enforce_retention_duration=False,
         )
+    
+    
+
+    def buscar_por_filtros(self, especialidade: str = None, cidade: str = None, uf: str = None, ativo: bool = None) -> list[T]:
+
+        if not self._tabela_existe():
+
+            return []
+
+
+
+        condicao = None
+
+        
+
+        # Montagem dinâmica das condições de busca
+
+        if especialidade:
+
+            c = ds.field("especialidade") == especialidade
+
+            condicao = c if condicao is None else condicao & c
+
+        if cidade:
+
+            c = ds.field("cidade") == cidade
+
+            condicao = c if condicao is None else condicao & c
+
+        if uf:
+
+            c = ds.field("uf") == uf
+
+            condicao = c if condicao is None else condicao & c
+
+        if ativo is not None:
+
+            c = ds.field("ativo") == ativo
+
+            condicao = c if condicao is None else condicao & c
+
+
+
+        tabela = DeltaTable(self._caminho)
+
+        dataset = tabela.to_pyarrow_dataset()
+
+        
+
+        resultado = []
+
+        # O filtro é aplicado na leitura do lote, otimizando o Delta Lake
+
+        for batch in dataset.to_batches(filter=condicao):
+
+            for row in batch.to_pylist():
+
+                resultado.append(self._model(**row))
+
+                
+
+        return resultado

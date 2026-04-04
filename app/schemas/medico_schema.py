@@ -14,7 +14,7 @@ class MedicoCreate(BaseModel):
     ativo: bool= True
 
 #GET/PUT - quando a API devolver os dados
-class Medico(MedicoCreate):
+class MedicoResponse(MedicoCreate):
     id: int 
 
     class Config:
