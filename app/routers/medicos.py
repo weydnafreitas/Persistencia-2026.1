@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, status, Query
 from fastapi.responses import StreamingResponse
 from deltalake import DeltaTable
-from zipstream_ng import ZipStream
+from zipstream.ng import ZipStream
 
 from app.models.medico import Medico as MedicoModel
-from app.schemas.medico_schema import Medico, MedicoCreate
+from app.schemas.medico_schema import MedicoResponse, MedicoCreate
 from app.repositories.hospital_repository import HospitalRepository
 from app.routers.hasher import calcular_hash
 
@@ -15,13 +15,13 @@ router = APIRouter(prefix="/medicos", tags=["Médicos"])
 repo = HospitalRepository(model=MedicoModel, caminho="data/medicos")
 
 #POST - inserção
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=Medico)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=MedicoResponse)
 def criar_medico(medico_in: MedicoCreate):
     novo_medico_model = MedicoModel(**medico_in.model_dump())
     return repo.insert(novo_medico_model)
 
 #GET - listagem paginada
-@router.get("/", response_model=list[Medico])
+@router.get("/", response_model=list[MedicoResponse])
 def listar_medicos(
     pagina: int = Query(1, ge=1), 
     tamanho: int = Query(10, ge=1, le=100)
@@ -29,14 +29,14 @@ def listar_medicos(
     return repo.listar(pagina=pagina, tamanho=tamanho)
 
 #Busca, Atualização e Deleção
-@router.get("/{id}", response_model=Medico)
+@router.get("/{id}", response_model=MedicoResponse)
 def buscar_por_id(id: int):
     medico = repo.get(id)
     if not medico:
         raise HTTPException(status_code=404, detail="Médico não encontrado")
     return medico
 
-@router.put("/{id}", response_model=Medico)
+@router.put("/{id}", response_model=MedicoResponse)
 def atualizar_medico(id: int, dados: MedicoCreate):
     novos_dados = MedicoModel(**dados.model_dump())
     resultado = repo.update(id, novos_dados)
