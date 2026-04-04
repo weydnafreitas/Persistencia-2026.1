@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Query
 from fastapi.responses import StreamingResponse
 from deltalake import DeltaTable
-from zipstream import ZipStream
+from zipstream_ng import ZipStream
 
 from app.models.medico import Medico as MedicoModel
 from app.schemas.medico_schema import Medico, MedicoCreate
