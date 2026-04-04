@@ -1,4 +1,4 @@
-from fastapi import Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 class EntidadeNaoEncontradaException(Exception):
@@ -11,7 +11,7 @@ class RegraNegocioException(Exception):
         self.detalhe = detalhe
 
 # Funções para registrar os manipuladores no main.py
-def configurar_excecoes(app):
+def configurar_excecoes(app: FastAPI):
     @app.exception_handler(EntidadeNaoEncontradaException)
     async def not_found_handler(request: Request, exc: EntidadeNaoEncontradaException):
         return JSONResponse(

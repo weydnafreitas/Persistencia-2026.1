@@ -1,6 +1,6 @@
 #Field para validação extra
 #EmailStr ajuda na validação automática de e-mail
-from pydantic import BaseModel, EmailStr, Field 
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 #POST - envio de dados para criar médico
 class MedicoCreate(BaseModel):
@@ -11,11 +11,10 @@ class MedicoCreate(BaseModel):
     telefone: str 
     cidade: str
     uf: str = Field(..., min_length=2, max_length=2)
-    ativo: bool= True
+    ativo: bool = True
 
 #GET/PUT - quando a API devolver os dados
 class MedicoResponse(MedicoCreate):
     id: int 
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
