@@ -1,3 +1,5 @@
+'''Arquivo que gerencia as regras de negócio e o fluxo das requisições'''
+
 from __future__ import annotations
 from pydantic import BaseModel, field_validator
 from fastapi import APIRouter, Query, status
