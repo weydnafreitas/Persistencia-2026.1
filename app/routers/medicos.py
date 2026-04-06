@@ -9,26 +9,14 @@ from app.repositories.hospital_repository import HospitalRepository
 from app.routers.hasher import calcular_hash
 
 router = APIRouter(prefix="/medicos", tags=["Médicos"])
-
-# Instanciando o repositório genérico para a entidade Medico
-# O caminho "data/medicos" é onde a tabela Delta será salva em disco
 repo = HospitalRepository(model=MedicoModel, caminho="data/medicos")
 
-#POST - inserção
+#POST - inserção, busca, atualização, deleção
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=MedicoResponse)
 def criar_medico(medico_in: MedicoCreate):
     novo_medico_model = MedicoModel(**medico_in.model_dump())
     return repo.insert(novo_medico_model)
 
-#GET - listagem paginada
-@router.get("/", response_model=list[MedicoResponse])
-def listar_medicos(
-    pagina: int = Query(1, ge=1), 
-    tamanho: int = Query(10, ge=1, le=100)
-):
-    return repo.listar(pagina=pagina, tamanho=tamanho)
-
-#Busca, Atualização e Deleção
 @router.get("/{id}", response_model=MedicoResponse)
 def buscar_por_id(id: int):
     medico = repo.get(id)
@@ -49,6 +37,14 @@ def deletar_medico(id: int):
     if not repo.delete(id):
         raise HTTPException(status_code=404, detail="Médico não encontrado")
 
+#GET - listagem paginada
+@router.get("/", response_model=list[MedicoResponse])
+def listar_medicos(
+    pagina: int = Query(1, ge=1), 
+    tamanho: int = Query(10, ge=1, le=100)
+):
+    return repo.listar(pagina=pagina, tamanho=tamanho)
+
 #Contagem (GET /count) 
 @router.get("/count")
 def contar_medicos():
@@ -58,11 +54,10 @@ def contar_medicos():
 @router.get("/exportar/csv")
 def exportar_csv_streaming():
     def gerador_csv():
-        #Cabeçalho do CSV
         yield "id,nome,crm,especialidade,ativo\n"
-        
-        #Leitura em lotes (batches) para preservar a RAM
         tabela = DeltaTable("data/medicos")
+        
+        # leitura em lotes (batches) para preservar a RAM
         # to_batches garante que não carregamos tudo de uma vez
         for batch in tabela.to_pyarrow_dataset().to_batches(batch_size=100):
             for linha in batch.to_pylist():
@@ -79,12 +74,11 @@ def exportar_csv_streaming():
 def exportar_medicos_zip():
     
     def gerar_linhas_csv():
-    
         yield "id,nome,crm,especialidade,cidade,uf,ativo\n"
-        
-        #Leitura em lotes (batches) para respeitar o limite de RAM
         tabela = DeltaTable("data/medicos")
-        #batch_size evita carregar a tabela inteira de uma vez 
+
+        # leitura em lotes (batches) para respeitar o limite de RAM
+        # batch_size evita carregar a tabela inteira de uma vez 
         for batch in tabela.to_pyarrow_dataset().to_batches(batch_size=100):
             for linha in batch.to_pylist():
                 yield (
