@@ -2,7 +2,7 @@
 #EmailStr ajuda na validação automática de e-mail
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
-#POST - envio de dados para criar médico
+# Validação da entrada de dados 
 class MedicoCreate(BaseModel):
     nome: str
     crm: str = Field(..., min_length=1)
@@ -13,7 +13,7 @@ class MedicoCreate(BaseModel):
     uf: str = Field(..., min_length=2, max_length=2)
     ativo: bool = True
 
-#GET/PUT - quando a API devolver os dados
+#Retorno de dados
 class MedicoResponse(MedicoCreate):
     id: int 
 

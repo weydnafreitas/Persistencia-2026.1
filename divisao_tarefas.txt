@@ -1,3 +1,3 @@
-Membro 1: Implementação da persistência com Delta Lake, controle de IDs (.seq) e método Vacuum.
-Weydna: Implementação dos schemas Pydantic, rotas CRUD no FastAPI, listagem paginada (to_batches), script de carga inicial (Faker) e utilitário de Hash.
-Membro 3: Implementação dos endpoints de exportação CSV/ZIP via streaming e documentação técnica da API.
+Davila: Implementação da persistência com Delta Lake, controle de IDs (.seq) e método Vacuum.
+Weydna: Implementação dos schemas Pydantic, logica do sistema e rotas CRUD no FastAPI.
+Vitor: Implementação dos endpoints de exportação CSV/ZIP via streaming e documentação técnica da API.
