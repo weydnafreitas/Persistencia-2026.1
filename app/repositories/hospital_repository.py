@@ -146,64 +146,38 @@ class HospitalRepository[T: BaseModel]:
             enforce_retention_duration=False,
         )
     
-    
-
     def buscar_por_filtros(self, especialidade: str = None, cidade: str = None, uf: str = None, ativo: bool = None) -> list[T]:
 
         if not self._tabela_existe():
-
             return []
-
-
 
         condicao = None
 
-        
-
         # Montagem dinâmica das condições de busca
-
         if especialidade:
-
             c = ds.field("especialidade") == especialidade
-
             condicao = c if condicao is None else condicao & c
 
         if cidade:
-
             c = ds.field("cidade") == cidade
-
             condicao = c if condicao is None else condicao & c
 
         if uf:
-
             c = ds.field("uf") == uf
-
             condicao = c if condicao is None else condicao & c
 
         if ativo is not None:
-
             c = ds.field("ativo") == ativo
-
             condicao = c if condicao is None else condicao & c
 
-
-
         tabela = DeltaTable(self._caminho)
-
         dataset = tabela.to_pyarrow_dataset()
-
-        
-
         resultado = []
 
         # O filtro é aplicado na leitura do lote, otimizando o Delta Lake
-
         for batch in dataset.to_batches(filter=condicao):
 
             for row in batch.to_pylist():
-
                 resultado.append(self._model(**row))
-
-                
 
         return resultado
