@@ -11,6 +11,11 @@ from app.routers.hasher import calcular_hash
 router = APIRouter(prefix="/medicos", tags=["Médicos"])
 repo = HospitalRepository(model=MedicoModel, caminho="data/medicos")
 
+#Contagem (GET /count) 
+@router.get("/count", summary="Retorna o total de médicos")
+def contar_medicos():
+    return {"total": repo.count()}
+
 #POST - inserção, busca, atualização, deleção
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=MedicoResponse)
 def criar_medico(medico_in: MedicoCreate):
@@ -45,10 +50,6 @@ def listar_medicos(
 ):
     return repo.listar(pagina=pagina, tamanho=tamanho)
 
-#Contagem (GET /count) 
-@router.get("/count")
-def contar_medicos():
-    return {"total": repo.count()}
 
 #Exportação CSV via Streaming
 @router.get("/exportar/csv")
