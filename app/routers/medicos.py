@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Query
 from fastapi.responses import StreamingResponse
 from deltalake import DeltaTable
 from zipstream.ng import ZipStream
+from pathlib import Path
 
 from app.models.medico import Medico as MedicoModel
 from app.schemas.medico_schema import MedicoResponse, MedicoCreate
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/medicos", tags=["Médicos"])
 repo = HospitalRepository(model=MedicoModel, caminho="data/medicos")
 
 #Contagem (GET /count) 
-@router.get("/count", summary="Retorna o total de médicos")
+@router.get("/count")
 def contar_medicos():
     return {"total": repo.count()}
 
@@ -71,33 +72,57 @@ def exportar_csv_streaming():
     )
 
 #Compactação
+
 @router.get("/exportar/zip")
+
 def exportar_medicos_zip():
+
     
+
     def gerar_linhas_csv():
-        yield "id,nome,crm,especialidade,cidade,uf,ativo\n"
+
+        yield b"id,nome,crm,especialidade,ativo\n"
+
+        
+
+        # 1. Verifica se a tabela já foi inicializada no disco
+
+        if not Path("data/medicos/_delta_log").exists():
+
+            return # Interrompe e retorna apenas um CSV vazio com cabeçalho
+
+            
+
         tabela = DeltaTable("data/medicos")
 
-        # leitura em lotes (batches) para respeitar o limite de RAM
-        # batch_size evita carregar a tabela inteira de uma vez 
-        for batch in tabela.to_pyarrow_dataset().to_batches(batch_size=100):
-            for linha in batch.to_pylist():
-                yield (
-                    f"{linha['id']},{linha['nome']},{linha['crm']},"
-                    f"{linha['especialidade']},{linha['cidade']},"
-                    f"{linha['uf']},{linha['ativo']}\n"
-                )
 
-    #O ZipStream recebe um iterável e empacota em tempo real
+
+        for batch in tabela.to_pyarrow_dataset().to_batches(batch_size=100):
+
+            for linha in batch.to_pylist():
+
+                linha_texto = f"{linha['id']},{linha['nome']},{linha['crm']},{linha['especialidade']},{linha['ativo']}\n"
+
+                yield linha_texto.encode('utf-8')
+
+
+
     stream_zip = ZipStream()
+
     stream_zip.add(gerar_linhas_csv(), "medicos.csv")
 
-    #Retorno via StreamingResponse do FastAPI
+
+
     return StreamingResponse(
+
         stream_zip,
+
         media_type="application/zip",
+
         headers={"Content-Disposition": "attachment; filename=exportacao_medicos.zip"}
+
     )
+
 
 #Hash
 @router.get("/hash/{algoritmo}")
